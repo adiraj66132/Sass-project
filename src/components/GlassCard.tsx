@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { memo, type ReactNode } from 'react';
 
 interface GlassCardProps {
     children: ReactNode;
@@ -9,7 +9,7 @@ interface GlassCardProps {
     style?: React.CSSProperties;
 }
 
-export function GlassCard({
+export const GlassCard = memo(function GlassCard({
     children,
     className = '',
     variant = 'default',
@@ -30,4 +30,4 @@ export function GlassCard({
             {children}
         </div>
     );
-}
+});

@@ -1,4 +1,4 @@
-import type { PlannerConfig, DayPlan, DayTask } from '../types';
+import type { PlannerConfig, DayPlan } from '../types';
 import { flattenAndSort } from './scheduler';
 import { daysBetween, todayISO, addDays, BUFFER_DAYS } from './utils';
 

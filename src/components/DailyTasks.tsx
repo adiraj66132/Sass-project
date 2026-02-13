@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import type { DayPlan } from '../types';
 import { GlassCard } from './GlassCard';
 import { FocusTimer } from './FocusTimer';
@@ -11,7 +11,7 @@ interface DailyTasksProps {
     showDate?: boolean;
 }
 
-export function DailyTasks({ plan, onToggle, onSessionComplete, showDate = false }: DailyTasksProps) {
+export const DailyTasks = memo(function DailyTasks({ plan, onToggle, onSessionComplete, showDate = false }: DailyTasksProps) {
     const [activeTask, setActiveTask] = useState<{ topicId: string; subjectId: string; name: string } | null>(null);
 
     const completed = plan.tasks.filter((t) => t.completed).length;
@@ -91,7 +91,7 @@ export function DailyTasks({ plan, onToggle, onSessionComplete, showDate = false
             </div>
 
             {/* Task List */}
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3" role="list" aria-label="Tasks">
                 {plan.tasks.map((task) => (
                     <div
                         key={task.topicId}
@@ -101,6 +101,7 @@ export function DailyTasks({ plan, onToggle, onSessionComplete, showDate = false
                             background: task.completed ? 'transparent' : 'rgba(255,255,255,0.01)',
                             opacity: task.completed ? 0.4 : 1,
                         }}
+                        role="listitem"
                     >
                         {/* Checkbox */}
                         <div
@@ -109,6 +110,17 @@ export function DailyTasks({ plan, onToggle, onSessionComplete, showDate = false
                                 onToggle(task.subjectId, task.topicId);
                                 if (!task.completed) launchConfetti();
                             }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    onToggle(task.subjectId, task.topicId);
+                                    if (!task.completed) launchConfetti();
+                                }
+                            }}
+                            role="checkbox"
+                            aria-checked={task.completed}
+                            aria-label={`Mark ${task.topicName} as ${task.completed ? 'incomplete' : 'complete'}`}
+                            tabIndex={0}
                         />
 
                         {/* Title Section */}
@@ -139,6 +151,7 @@ export function DailyTasks({ plan, onToggle, onSessionComplete, showDate = false
                             <button
                                 className="glass-btn glass-btn-small !py-2 !px-4 !text-[11px] uppercase tracking-widest font-bold"
                                 onClick={() => setActiveTask({ topicId: task.topicId, subjectId: task.subjectId, name: task.topicName })}
+                                aria-label={`Start focus timer for ${task.topicName}`}
                                 style={{
                                     background: 'rgba(255,255,255,0.05)',
                                     borderColor: 'rgba(255,255,255,0.08)',
@@ -175,4 +188,4 @@ export function DailyTasks({ plan, onToggle, onSessionComplete, showDate = false
             )}
         </GlassCard>
     );
-}
+});

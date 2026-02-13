@@ -1,6 +1,7 @@
 import { useMemo, useCallback } from 'react';
-import type { PlannerConfig, DayPlan, Subject, Topic } from '../types';
+import type { PlannerConfig, Subject, Topic } from '../types';
 import { useLocalStorage } from './useLocalStorage';
+import { useToast } from './useToast';
 import { generatePlan, getTodayPlan, getUpcomingPlans } from '../engine/planner';
 import { skipDayAndRebalance, toggleTopicComplete } from '../engine/rebalance';
 import { uid, DIFFICULTY_HOURS, todayISO, addDays } from '../engine/utils';
@@ -16,6 +17,7 @@ const DEFAULT_CONFIG: PlannerConfig = {
 
 export function usePlanner() {
     const [config, setConfig] = useLocalStorage<PlannerConfig>('planner-config', DEFAULT_CONFIG);
+    const { addToast } = useToast();
 
     const plan = useMemo(() => generatePlan(config), [config]);
     const todayPlan = useMemo(() => getTodayPlan(plan), [plan]);
@@ -36,7 +38,8 @@ export function usePlanner() {
     const addSubject = useCallback((name: string) => {
         const subject: Subject = { id: uid(), name, topics: [] };
         setConfig((c) => ({ ...c, subjects: [...c.subjects, subject] }));
-    }, [setConfig]);
+        addToast(`Subject "${name}" added`, 'success');
+    }, [setConfig, addToast]);
 
     const updateSubject = useCallback((id: string, name: string) => {
         setConfig((c) => ({
@@ -46,11 +49,15 @@ export function usePlanner() {
     }, [setConfig]);
 
     const removeSubject = useCallback((id: string) => {
+        const subject = config.subjects.find(s => s.id === id);
         setConfig((c) => ({
             ...c,
             subjects: c.subjects.filter((s) => s.id !== id),
         }));
-    }, [setConfig]);
+        if (subject) {
+            addToast(`Subject "${subject.name}" removed`, 'info');
+        }
+    }, [setConfig, config.subjects, addToast]);
 
     // ── Topic CRUD ──
 
@@ -69,8 +76,9 @@ export function usePlanner() {
                     s.id === subjectId ? { ...s, topics: [...s.topics, topic] } : s
                 ),
             }));
+            addToast(`Topic "${name}" added`, 'success');
         },
-        [setConfig]
+        [setConfig, addToast]
     );
 
     const updateTopic = useCallback(
@@ -99,6 +107,8 @@ export function usePlanner() {
 
     const removeTopic = useCallback(
         (subjectId: string, topicId: string) => {
+            const subject = config.subjects.find(s => s.id === subjectId);
+            const topic = subject?.topics.find(t => t.id === topicId);
             setConfig((c) => ({
                 ...c,
                 subjects: c.subjects.map((s) =>
@@ -107,8 +117,11 @@ export function usePlanner() {
                         : s
                 ),
             }));
+            if (topic) {
+                addToast(`Topic "${topic.name}" removed`, 'info');
+            }
         },
-        [setConfig]
+        [setConfig, config.subjects, addToast]
     );
 
     // ── Day Actions ──
@@ -119,9 +132,20 @@ export function usePlanner() {
 
     const toggleComplete = useCallback(
         (subjectId: string, topicId: string) => {
+            const subject = config.subjects.find(s => s.id === subjectId);
+            const topic = subject?.topics.find(t => t.id === topicId);
+            const isCompleting = topic && !topic.completed;
+            
             setConfig((c) => toggleTopicComplete(c, subjectId, topicId));
+            
+            if (topic) {
+                addToast(
+                    isCompleting ? `Completed "${topic.name}"` : `"${topic.name}" marked incomplete`,
+                    isCompleting ? 'success' : 'info'
+                );
+            }
         },
-        [setConfig]
+        [setConfig, config.subjects, addToast]
     );
 
     const toggleReviewComplete = useCallback((reviewId: string) => {
@@ -145,7 +169,8 @@ export function usePlanner() {
 
     const resetAll = useCallback(() => {
         setConfig(DEFAULT_CONFIG);
-    }, [setConfig]);
+        addToast('All data has been reset', 'info');
+    }, [setConfig, addToast]);
 
     return {
         config,

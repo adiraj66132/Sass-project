@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Subject } from '../types';
 import { GlassCard } from './GlassCard';
 import { TopicEditor } from './TopicEditor';
+import { ConfirmDialog } from './Modal';
 import type { Topic } from '../types';
 
 interface SubjectEditorProps {
@@ -29,6 +30,7 @@ export function SubjectEditor({
 }: SubjectEditorProps) {
     const [newName, setNewName] = useState('');
     const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [deleteSubject, setDeleteSubject] = useState<{ id: string; name: string } | null>(null);
 
     const handleAdd = () => {
         const trimmed = newName.trim();
@@ -84,8 +86,9 @@ export function SubjectEditor({
                             </button>
                             <button
                                 className="glass-btn glass-btn-small glass-btn-danger !p-2 opacity-40 hover:opacity-100 transition-opacity"
-                                onClick={() => onRemoveSubject(subject.id)}
+                                onClick={() => setDeleteSubject({ id: subject.id, name: subject.name })}
                                 title="Remove Subject"
+                                aria-label={`Remove subject ${subject.name}`}
                             >
                                 <span className="sr-only">Remove</span>
                                 🗑️
@@ -125,6 +128,16 @@ export function SubjectEditor({
                     No subjects yet. Add one above to get started.
                 </p>
             )}
+
+            <ConfirmDialog
+                isOpen={!!deleteSubject}
+                onClose={() => setDeleteSubject(null)}
+                title="Delete Subject"
+                message={`Are you sure you want to delete "${deleteSubject?.name}"? This will also delete all its topics.`}
+                confirmLabel="Delete"
+                onConfirm={() => deleteSubject && onRemoveSubject(deleteSubject.id)}
+                destructive
+            />
         </div>
     );
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Topic, Difficulty } from '../types';
+import { ConfirmDialog } from './Modal';
 
 interface TopicEditorProps {
     subjectId: string;
@@ -16,6 +17,7 @@ interface TopicEditorProps {
 export function TopicEditor({ subjectId, topics, onAdd, onUpdate, onRemove }: TopicEditorProps) {
     const [name, setName] = useState('');
     const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+    const [deleteTopic, setDeleteTopic] = useState<{ id: string; name: string } | null>(null);
 
     const handleAdd = () => {
         const trimmed = name.trim();
@@ -84,8 +86,9 @@ export function TopicEditor({ subjectId, topics, onAdd, onUpdate, onRemove }: To
 
                     <button
                         className="glass-btn glass-btn-small glass-btn-danger"
-                        onClick={() => onRemove(subjectId, topic.id)}
+                        onClick={() => setDeleteTopic({ id: topic.id, name: topic.name })}
                         style={{ padding: '4px 10px' }}
+                        aria-label={`Delete topic ${topic.name}`}
                     >
                         ×
                     </button>
@@ -97,6 +100,20 @@ export function TopicEditor({ subjectId, topics, onAdd, onUpdate, onRemove }: To
                     No topics yet
                 </p>
             )}
+
+            <ConfirmDialog
+                isOpen={!!deleteTopic}
+                onClose={() => setDeleteTopic(null)}
+                title="Delete Topic"
+                message={`Are you sure you want to delete "${deleteTopic?.name}"?`}
+                confirmLabel="Delete"
+                onConfirm={() => {
+                    if (deleteTopic) {
+                        onRemove(subjectId, deleteTopic.id);
+                    }
+                }}
+                destructive
+            />
         </div>
     );
 }

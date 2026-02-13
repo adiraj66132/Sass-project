@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { GlassCard } from '../components/GlassCard';
 import { DatePicker } from '../components/DatePicker';
 import { SubjectEditor } from '../components/SubjectEditor';
+import { ConfirmDialog } from '../components/Modal';
 import type { PlannerConfig, Topic } from '../types';
 import { todayISO } from '../engine/utils';
 
@@ -33,6 +35,8 @@ export function Setup({
     onRemoveTopic,
     onReset,
 }: SetupProps) {
+    const [showResetModal, setShowResetModal] = useState(false);
+
     const totalTopics = config.subjects.reduce((sum, s) => sum + s.topics.length, 0);
     const totalHours = config.subjects.reduce(
         (sum, s) => sum + s.topics.reduce((ts, t) => ts + t.estimatedHours, 0),
@@ -102,12 +106,22 @@ export function Setup({
                                 {totalHours.toFixed(1)}h total study time
                             </span>
                         </div>
-                        <button className="glass-btn glass-btn-small glass-btn-danger" onClick={onReset}>
+                        <button className="glass-btn glass-btn-small glass-btn-danger" onClick={() => setShowResetModal(true)}>
                             Reset All
                         </button>
                     </div>
                 </GlassCard>
             )}
+
+            <ConfirmDialog
+                isOpen={showResetModal}
+                onClose={() => setShowResetModal(false)}
+                title="Reset All Data"
+                message="This will delete all your subjects, topics, and progress. This action cannot be undone."
+                confirmLabel="Reset"
+                onConfirm={onReset}
+                destructive
+            />
         </div>
     );
 }

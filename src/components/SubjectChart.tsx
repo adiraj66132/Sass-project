@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { GlassCard } from './GlassCard';
 
 interface SubjectChartProps {
@@ -8,7 +9,7 @@ interface SubjectChartProps {
     }[];
 }
 
-export function SubjectChart({ data }: SubjectChartProps) {
+export const SubjectChart = memo(function SubjectChart({ data }: SubjectChartProps) {
     const total = data.reduce((sum, item) => sum + item.value, 0);
     const sorted = [...data].sort((a, b) => b.value - a.value);
 
@@ -47,4 +48,4 @@ export function SubjectChart({ data }: SubjectChartProps) {
             </div>
         </GlassCard>
     );
-}
+});

@@ -1,7 +1,7 @@
 import type { DayPlan, PlannerConfig } from '../types';
 import { DailyTasks } from '../components/DailyTasks';
 import { GlassCard } from '../components/GlassCard';
-import { formatDate, isSameDay, todayISO } from '../engine/utils';
+import { formatDate, todayISO } from '../engine/utils';
 import { launchConfetti } from '../components/Confetti';
 
 interface TodayProps {
@@ -107,6 +107,7 @@ export function Today({ plan, config, onToggle, onSkip, onReviewToggle, onSessio
                             <button
                                 className="glass-btn glass-btn-small"
                                 onClick={() => onSkip(plan.date)}
+                                aria-label="Skip today's tasks"
                                 style={{ opacity: 0.6 }}
                             >
                                 Skip today
